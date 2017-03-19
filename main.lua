@@ -30,6 +30,8 @@ function love.draw()
 		game:draw()
 	elseif state == 3 then
 		gameover:draw()
+	elseif state == 4 then
+		game:draw()
 	end
 end
 function love.keypressed(key)
@@ -39,5 +41,7 @@ function love.keypressed(key)
 		game:keypressed(key)
 	elseif state == 3 then
 		gameover:keypressed(key)
+	elseif state == 4 then
+		game:keypressed(key)
 	end
 end

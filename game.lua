@@ -169,6 +169,40 @@ psystem4:start()
 
 local P_min3, P_max3 = psystem4:getParticleLifetime( )
 
+local psystem5 = love.graphics.newParticleSystem(broken_asteroid, 32)
+psystem5:setParticleLifetime(.5,1 ) 
+psystem5:setLinearAcceleration(-6000,-6000,6000,6000) 
+psystem5:setLinearDamping(50, 100) 
+psystem5:setColors(255,255,255, 255, 100, 100, 100, 0) 
+psystem5:setSizes(1)
+psystem5:setRadialAcceleration(500)
+psystem5:setEmissionRate(32)
+psystem5:setRotation(0,6.28) 
+psystem5:setSpinVariation(1)
+psystem5:setBufferSize(20)
+psystem5:stop()
+psystem5:start()
+
+local P_min3, P_max3 = psystem5:getParticleLifetime( )
+
+
+local psystem6 = love.graphics.newParticleSystem(particle2, 1000)
+psystem6:setParticleLifetime(.5,1 ) 
+psystem6:setLinearAcceleration(-2000,-2000,2000,2000) 
+psystem6:setLinearDamping(100, 100) 
+psystem6:setColors(255,200,50, 100, 255, 50, 50, 50) 
+psystem6:setSizes(.3)
+psystem6:setRadialAcceleration(2500)
+psystem6:setEmissionRate(1000)
+psystem6:setRotation(0,6.28) 
+psystem6:setSpinVariation(1)
+psystem6:setBufferSize(500)
+psystem6:stop()
+psystem6:start()
+
+local P_min3, P_max3 = psystem6:getParticleLifetime( )
+
+
 function reset()
 	for i = 0, 1000 do
 		for i,j in ipairs(Asteroid.pos) do
@@ -311,8 +345,7 @@ function collision_detection(enemytype,x,y,hp,typ,dmg,worth)
 				and player.gun3[k].x <= enemytype[i].x + x *1.5
 				and player.gun3[k].can_hit == 1
 				then
-					--player.gun1[k].lum = 0
-					--player.gun1[k].can_hit = 0
+				
 					enemytype[i].hp = enemytype[i].hp - player.gun3.damage
 					if enemytype[i].hp <= 0 then
 						enemytype[i].alive = 0
@@ -445,8 +478,8 @@ function player_gui(gotDamage,hp)
 	hp_meter = hp_meter - gotDamage * 3
 	if hp_meter <= 0 then
 		hp_meter = 0
-		sh = love.graphics.newScreenshot()
-		sh_img = love.graphics.newImage(sh)
+		deathscreen = love.graphics.newScreenshot()
+		sh_img = love.graphics.newImage(deathscreen)
 		reset()
 		state = 3
 	end
@@ -476,58 +509,56 @@ function player_gui(gotDamage,hp)
 
 end
 
+function updateEnemy(dt)
+	for i,j in ipairs(Asteroid.pos) do
+		Asteroid.pos[i].x = Asteroid.pos[i].x + Asteroid.speed * Asteroid.pos[i].cos * dt
+		Asteroid.pos[i].y = Asteroid.pos[i].y + Asteroid.speed * Asteroid.pos[i].sin * dt
+		if Asteroid.pos[i].y > G.getHeight() + 30 or Asteroid.pos[i].x < -30 or Asteroid.pos[i].x > G.getWidth() + 30 then
+				table.remove(Asteroid.pos,i)
+		end
+	end
+	for i,j in ipairs(Alien.pos) do
+		Alien.pos[i].x = Alien.pos[i].x + Alien.speed * Alien.pos[i].cos * dt
+		Alien.pos[i].y = Alien.pos[i].y + Alien.speed * Alien.pos[i].sin * dt
+		if Alien.pos[i].y > G.getHeight() + 30 or Alien.pos[i].x < -30 or Alien.pos[i].x > G.getWidth() + 30 then
+				table.remove(Alien.pos,i)
+				
+		end
+	end
+end
+
+
 
 function drawAlien()
 
 	love.graphics.setColor(255,255,255,255)
 	
 	for i,j in ipairs(Alien.pos) do
-		Alien.pos[i].x = Alien.pos[i].x + Alien.speed * Alien.pos[i].cos * DT
-		Alien.pos[i].y = Alien.pos[i].y + Alien.speed * Alien.pos[i].sin * DT
 		love.graphics.draw(alien1, Alien.pos[i].x, Alien.pos[i].y,Alien.pos[i].r,Alien.size,Alien.size,alien1:getWidth() /2,alien1:getHeight() /2 )
 		love.graphics.rectangle("line",Alien.pos[i].x - Alien.pos[i].hp /5 - 1, Alien.pos[i].y-2, Alien.pos[i].hp /2.5 + 1, 5,2)
 		love.graphics.setColor(0,255,0,255)
 		love.graphics.rectangle("fill",Alien.pos[i].x - Alien.pos[i].hp /5, Alien.pos[i].y-1, Alien.pos[i].hp /2.5, 3,2)
 		love.graphics.setColor(255,255,255,255)
-		
 		love.graphics.print(Alien.pos[i].hp, Alien.pos[i].x - string.len(Alien.pos[i].hp)*5, Alien.pos[i].y)
 		love.graphics.setColor(255,255,255)
-			
-		if Alien.pos[i].y > G.getHeight() + 30 or Alien.pos[i].x < -30 or Alien.pos[i].x > G.getWidth() + 30 then
-				table.remove(Alien.pos,i)
-			
-		end
 	end
 end
 
-function drawAsteroid(x,y,r)
+function drawAsteroid()
+		
 		local hitpoints	
 		Asteroid.rad = Asteroid.rad + 2 * DT
+		love.graphics.setColor(255,255,255,255)
 		
-	 	
-	 	love.graphics.setColor(255,255,255,255)
 		for i,j in ipairs(Asteroid.pos) do
-			Asteroid.pos[i].x = Asteroid.pos[i].x + Asteroid.speed * Asteroid.pos[i].cos * DT
-			Asteroid.pos[i].y = Asteroid.pos[i].y + Asteroid.speed * Asteroid.pos[i].sin * DT
-			
-
-
-			
 			love.graphics.draw(asteroid1,Asteroid[Asteroid.pos[i].rnd].animate, Asteroid.pos[i].x, Asteroid.pos[i].y, Asteroid.rad / Asteroid.pos[i].size, Asteroid.pos[i].size, Asteroid.pos[i].size, 36, 36)
 			love.graphics.rectangle("line",Asteroid.pos[i].x - Asteroid.pos[i].hp /5 - 1, Asteroid.pos[i].y-2, Asteroid.pos[i].hp /2.5 + 1, 5,2)
 			love.graphics.setColor(0,255,0,255)
 			love.graphics.rectangle("fill",Asteroid.pos[i].x - Asteroid.pos[i].hp /5, Asteroid.pos[i].y-1, Asteroid.pos[i].hp /2.5, 3,2)
 			love.graphics.setColor(255,255,255,255)
-
 			love.graphics.print(Asteroid.pos[i].hp, Asteroid.pos[i].x - string.len(Asteroid.pos[i].hp)*5, Asteroid.pos[i].y)
 			love.graphics.setColor(255,255,255)
-			
-			if Asteroid.pos[i].y > G.getHeight() + 30 or Asteroid.pos[i].x < -30 or Asteroid.pos[i].x > G.getWidth() + 30 then
-				table.remove(Asteroid.pos,i)
-			end
 		end
-
-		
 
  	if Asteroid.rad > 628 then 
  	 		Asteroid.rad = 0
@@ -536,84 +567,89 @@ end
 
 function enemy_died()
 
-	for k,l in ipairs(enemy.pos) do
-		enemy.pos[k].delay = enemy.pos[k].delay + DT
-		if enemy.pos[k].typ == "Asteroid" then 
-		 	--love.graphics.print("Asteroid",100,100)
-		 	psystem3:setColors(255,255,255, 255, 100, 100, 100, 0) 
-			love.graphics.draw(psystem3,enemy.pos[k].x, enemy.pos[k].y)
+	for i,j in ipairs(enemy.pos) do
+		enemy.pos[i].delay = enemy.pos[i].delay + DT
+		if enemy.pos[i].typ == "Asteroid" then 
+			psystem3:setColors(255,255,255, 255, 100, 100, 100, 0) 
+			love.graphics.draw(psystem3,enemy.pos[i].x, enemy.pos[i].y)
 			psystem4:setColors(200,200,200, 75, 100, 100, 100, 10) 
-			love.graphics.draw(psystem4,enemy.pos[k].x, enemy.pos[k].y)
-		elseif enemy.pos[k].typ == "Alien" then
-			--love.graphics.print("Alien",100,100)
-			psystem3:setColors(50,50,50, 150, 50, 50, 50, 100) 
-			love.graphics.draw(psystem3,enemy.pos[k].x, enemy.pos[k].y)
-			psystem4:setColors(255,200,50, 50, 255, 50, 50, 10) 
-			love.graphics.draw(psystem4,enemy.pos[k].x, enemy.pos[k].y)
+			love.graphics.draw(psystem4,enemy.pos[i].x, enemy.pos[i].y)
+		end
+		if enemy.pos[i].typ == "Alien" then
+			psystem5:setColors(50,50,50, 150, 50, 50, 50, 100) 
+			love.graphics.draw(psystem5,enemy.pos[i].x, enemy.pos[i].y)
+			psystem6:setColors(255,200,50, 50, 255, 50, 50, 10) 
+			love.graphics.draw(psystem6,enemy.pos[i].x, enemy.pos[i].y)
 		end
 					
-		if enemy.pos[k].delay > P_min3  then
-			enemy.pos[k].delay = 0
-			table.remove(enemy.pos,k)
+		if enemy.pos[i].delay > P_min3  then
+			enemy.pos[i].delay = 0
+			table.remove(enemy.pos,i)
 		end
+
+
+
+
+
+
+	end
+end
+function update_Player_gunfire(dt)
+	if #player.gun1 ~= 0 and #player.gun2 ~= 0 then
+		for i,j in ipairs(player.gun1,player.gun2) do
+		player.gun1[i].y = player.gun1[i].y - player.shooting.speed * dt
+		player.gun2[i].y = player.gun2[i].y - player.shooting.speed * dt
+			if player.gun1[i].y < 0  then
+				table.remove(player.gun1,i)
+			end
+		
+			if player.gun2[i].y < 0  then 
+			 table.remove(player.gun2,i)
+			end
+		end
+	elseif #player.gun3 ~= 0 then
+		for i,j in ipairs(player.gun3) do
+			player.gun3[i].y = player.gun3[i].y - player.shooting.speed * DT * 10
+			if player.gun3[i].y < -1000  then
+				table.remove(player.gun3,i)
+			end
+		end	
 	end
 end
 
-function is_shooting()
-	if #player.gun1 ~= 0 and #player.gun2 ~= 0 then
-		for i,j in ipairs(player.gun1,player.gun2) do
-		player.gun1[i].y = player.gun1[i].y - player.shooting.speed * DT
-		player.gun2[i].y = player.gun2[i].y - player.shooting.speed * DT
-		
+function draw_Player_gunfire()
+	
+	for i,j in ipairs(player.gun1,player.gun2) do
 		love.graphics.setLineWidth(1.5)
 		love.graphics.setColor(255,100,100,player.gun1[i].lum)
 		love.graphics.line(player.gun1[i].x,player.gun1[i].y,player.gun1[i].x,player.gun1[i].y+15)
 		love.graphics.setColor(255,100,100,player.gun2[i].lum)
 		love.graphics.line(player.gun2[i].x,player.gun2[i].y,player.gun2[i].x,player.gun2[i].y+15)
 		love.graphics.setLineWidth(1)
-
-			if player.gun1[i].y < 0  then
-				table.remove(player.gun1,i)
-			end
-			
-			if player.gun2[i].y < 0  then
-				 table.remove(player.gun2,i)
-			end
-		end
-	elseif #player.gun3 ~= 0 then
-		for i,j in ipairs(player.gun3) do
-		player.gun3[i].y = player.gun3[i].y - player.shooting.speed * DT * 10
 	
-			if player.gun3[i].y > player.pos.y - 500 then 	
-				love.graphics.setLineWidth(10)
-				love.graphics.setColor(100,150,100,player.gun3[i].lum)
-				love.graphics.line(player.gun3[i].x,player.gun3[i].y,player.gun3[i].x,player.pos.y)
-				love.graphics.setLineWidth(5)
-				love.graphics.setColor(100,255,100,player.gun3[i].lum)
-				love.graphics.line(player.gun3[i].x,player.gun3[i].y,player.gun3[i].x,player.pos.y)
-				love.graphics.setLineWidth(1)
-			else 
-				love.graphics.setLineWidth(10)
-				love.graphics.setColor(100,150,100,player.gun3[i].lum)
-				love.graphics.line(player.gun3[i].x,player.gun3[i].y,player.gun3[i].x,player.gun3[i].y + 500)
-				love.graphics.setLineWidth(5)
-				love.graphics.setColor(100,255,100,player.gun3[i].lum)
-				love.graphics.line(player.gun3[i].x,player.gun3[i].y,player.gun3[i].x,player.gun3[i].y + 500)
-				love.graphics.setLineWidth(1)
+	end	
+	
+	for i,j in ipairs(player.gun3) do
+		
+		if player.gun3[i].y > player.pos.y - 500 then 	
+			love.graphics.setLineWidth(10)
+			love.graphics.setColor(100,150,100,player.gun3[i].lum)
+			love.graphics.line(player.gun3[i].x,player.gun3[i].y,player.gun3[i].x,player.pos.y)
+			love.graphics.setLineWidth(5)
+			love.graphics.setColor(100,255,100,player.gun3[i].lum)
+			love.graphics.line(player.gun3[i].x,player.gun3[i].y,player.gun3[i].x,player.pos.y)
+			love.graphics.setLineWidth(1)
+		else 
+			love.graphics.setLineWidth(10)
+			love.graphics.setColor(100,150,100,player.gun3[i].lum)
+			love.graphics.line(player.gun3[i].x,player.gun3[i].y,player.gun3[i].x,player.gun3[i].y + 500)
+			love.graphics.setLineWidth(5)
+			love.graphics.setColor(100,255,100,player.gun3[i].lum)
+			love.graphics.line(player.gun3[i].x,player.gun3[i].y,player.gun3[i].x,player.gun3[i].y + 500)
+			love.graphics.setLineWidth(1)
 
-			end
-			
-			if player.gun3[i].y < -1000  then
-				table.remove(player.gun3,i)
-			end
 		end
-
 	end
-	
-
-
-
-
 	love.graphics.setColor(255,255,255)
 end
 
@@ -642,23 +678,27 @@ addStars(Stars.amount)
 end
 
 function game:update(dt)
-	--if state == 1 then
-	--	hp_meter = 299
-	--end
+	
 	energy_meter = energy_meter + dt * energy_multiplier
 	updateStars(dt)
 	DT = dt
 
 	psystem1:update(dt /2)
-	psystem2:update(dt /2 )
+	psystem2:update(dt /2)
 	psystem3:update(dt /2)
 	psystem4:update(dt /2)
+	psystem5:update(dt /2)
+	psystem6:update(dt /2)
 	psystem1:emit(100)
 	psystem2:emit(100)
 	psystem3:emit(32)
 	psystem4:emit(1000)
+	psystem5:emit(32)
+	psystem6:emit(1000)
 	player_input(dt)
 	spawn_random(20000)
+	updateEnemy(dt)
+	update_Player_gunfire(dt)
 	for i,j in ipairs(enemy.id) do
 		collision_detection(enemy.id[i].id,enemy.id[i].dim1,enemy.id[i].dim2,enemy.id[i].hp,enemy.id[i].typ,enemy.id[i].damage,enemy.id[i].worth)
 	end
@@ -670,7 +710,7 @@ function game:draw()
 	 drawAsteroid()
 	 drawAlien()
 	 enemy_died()
-	 is_shooting()
+	 draw_Player_gunfire()
 	 drawPlayer()
 	 player_gui(damage)
 	love.graphics.setColor(255,255,255)
@@ -733,7 +773,17 @@ function game:keypressed(key)
 		player.weapon = 5
 	end
 
+	if key == "p" and state ~= 4 then
+		state = 4
+	elseif key == "p" and state == 4 then
+		state = 2
+	end
 
+	if key == "f12" then
+		local screenshot = love.graphics.newScreenshot();
+    	screenshot:encode('png', os.time() .. '.png');
+    end
+	
 	if key == "escape" then
 		love.event.quit()
 	end

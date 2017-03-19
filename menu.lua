@@ -26,13 +26,10 @@ function addStars_(amount)
 	end
 end
 
-
-
 function drawStars_()
 	
 	for i,j in ipairs(Stars_) do
 			
-		
 		love.graphics.circle("fill",Stars_[i].x,Stars_[i].y,Stars_[i].size)
 	end
 end
