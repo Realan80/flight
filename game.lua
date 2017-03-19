@@ -152,7 +152,7 @@ psystem3:start()
 
 local P_min3, P_max3 = psystem3:getParticleLifetime( )
 
-
+-- Creates a particle system used whem asteroides are destroyd
 local psystem4 = love.graphics.newParticleSystem(particle2, 1000)
 psystem4:setParticleLifetime(.5,1 ) 
 psystem4:setLinearAcceleration(-2000,-2000,2000,2000) 
@@ -169,6 +169,7 @@ psystem4:start()
 
 local P_min3, P_max3 = psystem4:getParticleLifetime( )
 
+-- Creates a particle system used whem aliens are destroyd
 local psystem5 = love.graphics.newParticleSystem(broken_asteroid, 32)
 psystem5:setParticleLifetime(.5,1 ) 
 psystem5:setLinearAcceleration(-6000,-6000,6000,6000) 
@@ -185,7 +186,7 @@ psystem5:start()
 
 local P_min3, P_max3 = psystem5:getParticleLifetime( )
 
-
+-- Creates a particle system used whem aliens are destroyd
 local psystem6 = love.graphics.newParticleSystem(particle2, 1000)
 psystem6:setParticleLifetime(.5,1 ) 
 psystem6:setLinearAcceleration(-2000,-2000,2000,2000) 
@@ -259,7 +260,7 @@ end
 
 
 
-function spawn_random(rate)
+function spawn_random_enemy(rate)
 
 	local spawnRate = math.random(1,rate)
 	
@@ -696,7 +697,7 @@ function game:update(dt)
 	psystem5:emit(32)
 	psystem6:emit(1000)
 	player_input(dt)
-	spawn_random(20000)
+	spawn_random_enemy(20000)
 	updateEnemy(dt)
 	update_Player_gunfire(dt)
 	for i,j in ipairs(enemy.id) do

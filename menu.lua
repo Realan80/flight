@@ -11,6 +11,7 @@ local font1 =  love.graphics.newFont("assets/6809 chargen.ttf",18)
 local font2 =  love.graphics.newFont("assets/6809 chargen.ttf",80)
 local sine = 0 
 local j = 0
+local sine_menu = 0
 local Stars_ = {}
 Stars_.amount = G.getWidth() / 2 
 
@@ -44,7 +45,7 @@ function menu:update(dt)
 
 sine = sine + 0.0002
 hp_meter = 299
-
+sine_menu = math.sin(sine * 250)
 end
 function menu:draw()
 	drawStars_()
@@ -52,11 +53,22 @@ function menu:draw()
 	for i,j in ipairs(Menu) do
 		if Menu[i].active == 1 then
 			love.graphics.setColor(100,100,255)
+			if Menu[1].active == 1 then
+				love.graphics.print(Menu[1].i1..Menu[1].i2..Menu[1].i3..Menu[1].i4..Menu[1].i5..Menu[1].i6..Menu[1].i7,Menu[1].x,Menu[1].y + sine_menu * 5)
+							
+			elseif  Menu[2].active == 1 then
+				love.graphics.print(Menu[2].i1..Menu[2].i2..Menu[2].i3..Menu[2].i4..Menu[2].i5..Menu[2].i6..Menu[2].i7,Menu[i].x,Menu[2].y + sine_menu * 5)
+				
+			elseif Menu[3].active == 1 then
+				love.graphics.print(Menu[3].i1..Menu[3].i2..Menu[3].i3..Menu[3].i4..Menu[3].i5..Menu[3].i6..Menu[3].i7,Menu[i].x,Menu[3].y + sine_menu * 5)
+				love.graphics.setColor(255,255,255)
+			end
+		end
+		if Menu[i].active == 0 then	
+			love.graphics.setColor(255,255,255)
+			love.graphics.print(Menu[i].i1..Menu[i].i2..Menu[i].i3..Menu[i].i4..Menu[i].i5..Menu[i].i6..Menu[i].i7,Menu[i].x,Menu[i].y)
 			
 		end
-		love.graphics.print(Menu[i].i1..Menu[i].i2..Menu[i].i3..Menu[i].i4..Menu[i].i5..Menu[i].i6..Menu[i].i7,Menu[i].x,Menu[i].y)
-		love.graphics.setColor(255,255,255)
-		
 	end
 	love.graphics.setFont(font1)
  	love.graphics.draw(planet,0,G.getHeight(),sine,1,1,planet:getWidth()/1.959,planet:getHeight()/2)
