@@ -1,6 +1,7 @@
 local game = require("game")
 local menu = require("menu")
 local gameover = require("gameover")
+
 state = 1 
 math.randomseed(os.time())
 
@@ -43,5 +44,10 @@ function love.keypressed(key)
 		gameover:keypressed(key)
 	elseif state == 4 then
 		game:keypressed(key)
+	end
+end
+function love.keyreleased(key)
+	if state == 2 then
+		game:keyreleased(key)
 	end
 end

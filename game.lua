@@ -1,9 +1,7 @@
 local game = {}
 
-
 local player_img = love.graphics.newImage("assets/fighter1.png")
 local sheild_img = love.graphics.newImage("assets/sheild.png")
---local sheild_img2 = love.graphics.newImage("assets/boll.png")
 local font1 =  love.graphics.newFont("assets/6809 chargen.ttf",18)
 local player_img2 = love.graphics.newImage("assets/player_img2.png")
 local player_img3 = love.graphics.newImage("assets/player_img3.png")
@@ -12,10 +10,11 @@ local particle2 = love.graphics.newImage("assets/particle2.png")
 local asteroid1 = love.graphics.newImage("assets/asteroid1.png")
 local broken_asteroid = love.graphics.newImage("assets/broken_asteroid.png")
 local alien1 = love.graphics.newImage("assets/alienshiptex.png")
+local missile = love.graphics.newImage("assets/missile.png")
 local gui = love.graphics.newImage("assets/gui.png")
 
 love.graphics.setFont(font1)
-
+local wave_form = 1
 	  hp_meter = 299
 local energy_meter = 299
 local energy_multiplier = 10
@@ -24,12 +23,12 @@ local pi = math.pi
 local anim = 0
 local damage = 0
 local income = 0
-
 local player = {
 		shooting = {},
 		 gun1 = {},
 		 gun2 = {},
 		 gun3 = {},
+		 gun4 = {}
 		}
 
 player.shooting.cooloff = 0.17
@@ -45,9 +44,12 @@ player.right = 0
 player.gun1.damage = 10
 player.gun2.damage = 10
 player.gun3.damage = 150
+player.gun4.damage = 50
+player.gun4.energy_usage = 12.5
 player.gun3.energy_usage = 50
 player.gun1.energy_usage = 0.5
 player.gun2.energy_usage = 0.5
+player.gun4.hit_range = 1
 player.hitbox_x = 15
 player.hitbox_y = 20
 player.sheild = 0
@@ -203,6 +205,34 @@ psystem6:setBufferSize(500)
 psystem6:stop()
 psystem6:start()
 
+
+local psystem7 = love.graphics.newParticleSystem(particle2, 500)
+psystem7:setParticleLifetime(0.1,0.1 ) 
+psystem7:setLinearAcceleration(-300,0,300,3400) 
+psystem7:setLinearDamping(10, 100) 
+psystem7:setColors(110,110,255, 50, 80, 80, 225, 0) 
+psystem7:setSizes(.1)
+psystem7:setRotation(0,6.28) 
+psystem7:setSpinVariation(1)
+psystem7:setBufferSize(500)
+psystem7:setRadialAcceleration(50)
+psystem7:stop()
+psystem7:start()
+
+-- Creates a particle system used for the jet smoke effect
+local psystem8 = love.graphics.newParticleSystem(particle2, 500)
+psystem8:setParticleLifetime(0.1,.19 ) 
+psystem8:setLinearAcceleration(-200,0,200,6000) 
+psystem8:setLinearDamping(10, 50) 
+psystem8:setColors(40,40,40, 50, 30, 30, 30, 0) 
+psystem8:setSizes(.2)
+psystem8:setRotation(0,6.28) 
+psystem8:setSpinVariation(1)
+psystem8:setBufferSize(500)
+psystem8:setRadialAcceleration(400)
+psystem8:stop()
+psystem8:start()
+
 local P_min3, P_max3 = psystem6:getParticleLifetime( )
 
 
@@ -293,13 +323,14 @@ end
 
 function collision_detection(enemytype,x,y,hp,typ,dmg,worth)
 	for i,j in ipairs(enemytype) do
+
 		
 		if enemytype[i].x + x > player.pos.x - player.hitbox_x 
 		and enemytype[i].y + y > player.pos.y - player.hitbox_y 
 		and enemytype[i].x - x < player.pos.x + player.hitbox_x 
 		and enemytype[i].y - y < player.pos.y + player.hitbox_y 
 		then
-			--print("collision")
+			
 			enemytype[i].alive = 0
 			enemytype[i].got_hit = 1
 			damage = dmg
@@ -356,7 +387,27 @@ function collision_detection(enemytype,x,y,hp,typ,dmg,worth)
 					end
 				end
 			end
+		elseif #player.gun4 ~= 0 then
+			for k,l in ipairs(player.gun4) do
+			
+				if player.gun4[k].y <= enemytype[i].y + y 
+				and player.gun4[k].y >= enemytype[i].y - y 
+				and player.gun4[k].x >= enemytype[i].x - x 
+				and player.gun4[k].x <= enemytype[i].x + x 
+				and player.gun4[k].can_hit == 1
+				then
+					player.gun4[k].lum = 0
+					player.gun4[k].can_hit = 0	
+					enemytype[i].hp = enemytype[i].hp - player.gun4.damage
+					
+					if enemytype[i].hp <= 0 then
+						enemytype[i].alive = 0
+						enemytype[i].got_hit = 1
+					end
+				end
+			end	
 		end
+
 		if enemytype[i].alive == 0 then
 			income = income + worth
 			table.insert(enemy.pos,{x = enemytype[i].x, y = enemytype[i].y,delay = 0,typ = typ})
@@ -382,6 +433,13 @@ function player_input(dt) -- Handles the keyboard.isDown to make the player move
 		 		table.insert(player.gun3,{x = player.pos.x , y = player.pos.y-player_img:getHeight()/90,lum = 255,can_hit = 1 })
 		 		player.shooting.time = 0
 		 		energy_meter = energy_meter - player.gun3.energy_usage 
+			end
+		elseif player.weapon == 3 and energy_meter > player.gun4.energy_usage then 
+			player.shooting.time = player.shooting.time + dt /2
+			if player.shooting.time > player.shooting.cooloff then
+		 		table.insert(player.gun4,{x = player.pos.x , y = player.pos.y-player_img:getHeight()/90,lum = 255,can_hit = 1 })
+		 		player.shooting.time = 0
+		 		energy_meter = energy_meter - player.gun4.energy_usage 
 			end
 		end
 	end
@@ -451,10 +509,12 @@ function drawPlayer()
 	
 	if player.right == 1 then
 		love.graphics.draw(player_img2,player.pos.x,player.pos.y,math.pi*1.5,player.size,player.size,player_img:getWidth() /2,player_img:getHeight() /2 )
+	
 	end
 
 	if player.left == 1 then
 		love.graphics.draw(player_img3,player.pos.x,player.pos.y,math.pi*1.5,player.size,player.size,player_img:getWidth() /2,player_img:getHeight() /2 )
+	
 	end
 
 	if player.sheild == 1 then
@@ -611,11 +671,24 @@ function update_Player_gunfire(dt)
 			 table.remove(player.gun2,i)
 			end
 		end
-	elseif #player.gun3 ~= 0 then
+	elseif #player.gun3 ~= 0 then 
 		for i,j in ipairs(player.gun3) do
 			player.gun3[i].y = player.gun3[i].y - player.shooting.speed * dt * 10
 			if player.gun3[i].y < -1000  then
 				table.remove(player.gun3,i)
+			end
+		end	
+	elseif #player.gun4 ~= 0 then
+		for i,j in ipairs(player.gun4) do
+			
+			player.gun4[i].y = player.gun4[i].y - player.shooting.speed * dt /3
+			
+			if player.gun4[i].y < (player.pos.y - G.getWidth() / 6) then
+				player.gun4[i].y = player.gun4[i].y - player.shooting.speed * dt *2
+				player.gun4[i].x = player.gun4[i].x + math.sin(wave_form * 6) *3 
+			end	
+			if player.gun4[i].y < 0  then
+				table.remove(player.gun4,i)
 			end
 		end	
 	end
@@ -657,14 +730,24 @@ function draw_Player_gunfire()
 
 		end
 	end
+	
+	for i,j in ipairs(player.gun4) do
+		--love.graphics.setColor(255,100,255,player.gun4[i].lum)
+		--love.graphics.circle("fill",player.gun4[i].x,player.gun4[i].y,20)
+		love.graphics.setColor(255,255,255,player.gun4[i].lum)
+		love.graphics.draw(psystem8,player.gun4[i].x,player.gun4[i].y+20)
+		love.graphics.draw(psystem7,player.gun4[i].x,player.gun4[i].y+20)
+		love.graphics.draw(missile,player.gun4[i].x,player.gun4[i].y,0,0.07,0.07,missile:getWidth()/2,missile:getHeight()/2)
+
+	
+	end	
+
+	
 	love.graphics.setColor(255,255,255)
 end
 
 function drawStars()
-	--love.graphics.draw(space_bg1,0,-1500,0,0.7,1)	
-	--for i,j in ipairs(Stars) do
-		for i=1, #Stars do
-			
+	for i=1, #Stars do
 		love.graphics.setColor(200,200,Stars[i].color,180)
 		love.graphics.circle("fill",Stars[i].x,Stars[i].y,Stars[i].size)
 	end
@@ -675,7 +758,7 @@ function updateStars(dt)
 		Stars[i].y = Stars[i].y + Stars[i].speed
 		if Stars[i].y > G.getHeight() then
 			Stars[i].y = 1
-	
+		
 		end
 	end
 end
@@ -685,7 +768,10 @@ addStars(Stars.amount)
 end
 
 function game:update(dt)
-	
+	wave_form = wave_form + dt
+	if wave_form > 180 / math.pi then
+		wave_form = 0
+	end
 	energy_meter = energy_meter + dt * energy_multiplier
 	updateStars(dt)
 	--DT = dt
@@ -696,8 +782,12 @@ function game:update(dt)
 	psystem4:update(dt /2)
 	psystem5:update(dt /2)
 	psystem6:update(dt /2)
+	psystem7:update(dt /2)
+	psystem8:update(dt /2)
 	psystem1:emit(40)
 	psystem2:emit(40)
+	psystem7:emit(40)
+	psystem8:emit(40)
 	psystem3:emit(32)
 	psystem4:emit(1000)
 	psystem5:emit(32)
