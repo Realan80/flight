@@ -77,7 +77,7 @@ end
 function menu:keypressed(key)
 
 	if key == "escape" then
-		M = 0
+		state = 2
 	end
 
 	if key == "up" then

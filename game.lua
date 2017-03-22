@@ -11,7 +11,7 @@ local broken_asteroid = love.graphics.newImage("assets/broken_asteroid.png")
 local alien1 = love.graphics.newImage("assets/alienshiptex.png")
 local missile = love.graphics.newImage("assets/missile.png")
 local gui = love.graphics.newImage("assets/gui.png")
-
+local count = 0
 love.graphics.setFont(font1)
 local wave_form = 1
 	  hp_meter = 299
@@ -40,10 +40,13 @@ player.pos.x = G.getWidth() / 2
 player.pos.y = G.getHeight() - 150
 player.left = 0
 player.right = 0
+player.gun4.left = 1
 player.gun1.damage = 10
 player.gun2.damage = 10
 player.gun3.damage = 150
 player.gun4.damage = 50
+player.gun4.area_x = 125
+player.gun4.area_y = 125
 player.gun4.energy_usage = 12.5
 player.gun3.energy_usage = 50
 player.gun1.energy_usage = 0.5
@@ -56,11 +59,14 @@ player.sheild_animation = 50
 player.sheild_incr = 0
 player.weapon = 1
 
--- Creates a Table to put stars in
+	-- Stores explosions from exploding weapons
+	local explosion = {}
+
+	-- Creates a Table to put stars in
 	local Stars = {}
 	Stars.amount = G.getWidth() / 2 
 
--- Creats a table for animating an asteroid
+	-- Creats a table for animating an asteroid
 	local Asteroid = {
 		pos = {},
 
@@ -284,8 +290,6 @@ function reset()  -- Resets all values and tables on player death
 	energy_meter = 299
 end
 
-
-
 function spawn_random_enemy(rate)
 
 	local spawnRate = math.random(1,rate)
@@ -299,8 +303,6 @@ function spawn_random_enemy(rate)
 		local Sin = math.sin(Asteroid.angle)
 		local Rnd = math.random(1,19)
 		table.insert(enemy,{x = Asteroid.startpos_x, y = -30, r = 0,size = 1,cos = Cos, sin = Sin,hp = Hp,alive = 1,rnd = Rnd, dim_x = 34, dim_y = 32,gfx = asteroid1, quad = Asteroid[Rnd].animate, gfx_w = 36, gfx_h = 36, hp = Hp, alive = 1,id = "Asteroid", damage = 15,worth = math.floor(Hp / 10)} )
-		--table.insert(Asteroid.pos,{x = Asteroid.startpos_x, y = -30, r = 0,size = 1,cos = Cos, sin = Sin,hp = Hp,alive = 1,rnd = Rnd })
-		--table.insert(enemy.id,{id = Asteroid.pos, dim1 = 34, dim2 = 32, hp = Hp, alive = 1,typ = "Asteroid", damage = 15,worth = math.floor(Hp / 10)})
 	end
 
 	if spawnRate > 100 and spawnRate < 150 then
@@ -311,13 +313,9 @@ function spawn_random_enemy(rate)
 		local Hp = 50
 		local Rnd = math.random(1,19)
 		table.insert(enemy,{x = Alien.startpos_x, y = -30, r = Alien.angle,size = .1,cos = Cos, sin = Sin,hp = Hp,alive = 1,rnd = Rnd, dim_x = 34, dim_y = 32,gfx = alien1,gfx_w = alien1:getWidth() / 2, gfx_h = alien1:getHeight() / 2,  hp = Hp, alive = 1, id = "Alien", damage = 20,worth = math.floor(Hp / 10)} )
-		--table.insert(Alien.pos,{x = Alien.startpos_x, y = -30, r = Alien.angle,size = 1,cos = Cos, sin = Sin,hp = Hp,alive = 1,rnd = Rnd })
-		--table.insert(enemy.id,{id = Alien.pos, dim1 = 34, dim2 = 32, hp = Hp, alive = 1, typ = "Alien", damage = 20,worth = math.floor(Hp / 10)})
 	end	
-
 end
 
---function collision_detection(enemytype,x,y,hp,typ,dmg,worth)
 function collision_detection(enemytype)
 	for i,j in ipairs(enemytype) do
 
@@ -393,6 +391,7 @@ function collision_detection(enemytype)
 					player.gun4[k].lum = 0
 					player.gun4[k].can_hit = 0	
 					enemytype[i].hp = enemytype[i].hp - player.gun4.damage
+					table.insert(explosion,{x = player.gun4[k].x, y = player.gun4[k].y, area_x = player.gun4.area_x, area_y = player.gun4.area_y})
 					table.remove(player.gun4,k)
 					
 					if enemytype[i].hp <= 0 then
@@ -402,7 +401,26 @@ function collision_detection(enemytype)
 				end
 			end	
 		end
-
+		if #explosion ~= 0 then
+			count = count + 1
+			for k,l in ipairs(explosion) do
+				if enemytype[i].x < explosion[k].x + explosion[k].area_x
+				and enemytype[i].x > explosion[k].x - explosion[k].area_x
+				and enemytype[i].y < explosion[k].y + explosion[k].area_y
+				and enemytype[i].y > explosion[k].y - explosion[k].area_y
+				then
+					enemytype[i].hp = enemytype[i].hp - player.gun4.damage
+					if enemytype[i].hp <= 0 then
+						enemytype[i].alive = 0
+						enemytype[i].got_hit = 1
+					end
+				end
+				if count > #enemytype then 
+					table.remove(explosion,1)
+					count = 0
+				end
+			end				
+		end
 		if enemytype[i].alive == 0 then
 			income = income + enemytype[i].worth
 			table.insert(enemy.pos,{x = enemytype[i].x, y = enemytype[i].y,delay = 0,typ = enemytype[i].id})
@@ -432,8 +450,16 @@ function player_input(dt) -- Handles the keyboard.isDown to make the player move
 		elseif player.weapon == 3 and energy_meter > player.gun4.energy_usage then 
 			player.shooting.time = player.shooting.time + dt /2
 			if player.shooting.time > player.shooting.cooloff then
-		 		table.insert(player.gun4,{x = player.pos.x , y = player.pos.y-player_img:getHeight()/90,lum = 255,can_hit = 1 })
-		 		player.shooting.time = 0
+				if player.gun4.left == 1 then
+		 			table.insert(player.gun4,{x = player.pos.x - 20 , y = player.pos.y-player_img:getHeight()/90,startpos_y = player.pos.y-player_img:getHeight()/90, lum = 255, can_hit = 1 })
+		 			player.shooting.time = 0
+		 			player.gun4.left = 0
+		 		elseif player.gun4.left == 0 then
+		 			table.insert(player.gun4,{x = player.pos.x + 20 , y = player.pos.y-player_img:getHeight()/90, startpos_y = player.pos.y-player_img:getHeight()/90, lum = 255, can_hit = 1 })
+		 			player.shooting.time = 0
+		 			player.gun4.left = 1
+		 		end
+
 		 	--	energy_meter = energy_meter - player.gun4.energy_usage 
 			end
 		end
@@ -488,11 +514,11 @@ function addStars(amount)
 		local Speed = Size / 7
 		local Color = math.random(200,500)
 		table.insert(Stars,{x = math.random(1,G.getWidth()),y = math.random(1,G.getHeight()),size = Size,is_star = math.random(0,1),speed = Speed,color = Color})
-			
 	end
 end
 
 function drawPlayer()
+	
 	love.graphics.setColor(255,255,255,255)
 	love.graphics.draw(psystem2, player.pos.x - player_img:getWidth() / 10.5 * player.size  , player.pos.y + player_img:getWidth()/2.5 * player.size)
 	love.graphics.draw(psystem2, player.pos.x + player_img:getWidth() / 10.5 * player.size  , player.pos.y + player_img:getWidth()/2.5 * player.size)
@@ -531,6 +557,7 @@ function drawPlayer()
 end
 
 function player_gui(gotDamage,hp)
+	
 	love.graphics.setColor(255,255,255)
 	love.graphics.print("FPS: " .. love.timer.getFPS(), 1, 1,0) 
 	hp_meter = hp_meter - gotDamage * 3
@@ -564,7 +591,6 @@ function player_gui(gotDamage,hp)
 	love.graphics.draw(gui, 0,G.getHeight() - 100)
 	love.graphics.print("Weapon system "..player.weapon .." active", 10,G.getHeight()/1.07 )
 	damage = 0 
-
 end
 
 function updateEnemy(dt)
@@ -582,29 +608,10 @@ function updateEnemy(dt)
 			enemy[i].y = enemy[i].y + Alien.speed * enemy[i].sin * dt
 		end
 		
-		
-
 		if enemy[i].y > G.getHeight() + 30 or enemy[i].x < -30 or enemy[i].x > G.getWidth() + 30 then
 			table.remove(enemy,i)
 		end
-
-	--Asteroid.rad = Asteroid.rad + 2 * dt
-	--for i,j in ipairs(Asteroid.pos) do
-	--	Asteroid.pos[i].x = Asteroid.pos[i].x + Asteroid.speed * Asteroid.pos[i].cos * dt
-	--	Asteroid.pos[i].y = Asteroid.pos[i].y + Asteroid.speed * Asteroid.pos[i].sin * dt
-	--	if Asteroid.pos[i].y > G.getHeight() + 30 or Asteroid.pos[i].x < -30 or Asteroid.pos[i].x > G.getWidth() + 30 then
-	--			table.remove(Asteroid.pos,i)
-	--	end
---	end
-	--for i,j in ipairs(Alien.pos) do
-	--	Alien.pos[i].x = Alien.pos[i].x + Alien.speed * Alien.pos[i].cos * dt
-	--	Alien.pos[i].y = Alien.pos[i].y + Alien.speed * Alien.pos[i].sin * dt
-	--	if Alien.pos[i].y > G.getHeight() + 30 or Alien.pos[i].x < -30 or Alien.pos[i].x > G.getWidth() + 30 then
-	--		table.remove(Alien.pos,i)
-				
-	--	end
 	end
-	--return Enemy
 end
 
 function drawEnemy()
@@ -621,42 +628,8 @@ function drawEnemy()
 		love.graphics.setColor(255,255,255,255)
 		love.graphics.print(enemy[i].hp, enemy[i].x - string.len(enemy[i].hp)*5, enemy[i].y)
 		love.graphics.setColor(255,255,255)
-		
 	end
 end
---function drawAlien()
-
---	love.graphics.setColor(255,255,255,255)
-	
---	for i,j in ipairs(Alien.pos) do
---		love.graphics.draw(alien1, Alien.pos[i].x, Alien.pos[i].y,Alien.pos[i].r,Alien.size,Alien.size,alien1:getWidth() /2,alien1:getHeight() /2 )
---		love.graphics.rectangle("line",Alien.pos[i].x - Alien.pos[i].hp /5 - 1, Alien.pos[i].y-2, Alien.pos[i].hp /2.5 + 1, 5,2)
---		love.graphics.setColor(0,255,0,255)
---		love.graphics.rectangle("fill",Alien.pos[i].x - Alien.pos[i].hp /5, Alien.pos[i].y-1, Alien.pos[i].hp /2.5, 3,2)
---		love.graphics.setColor(255,255,255,255)
---		love.graphics.print(Alien.pos[i].hp, Alien.pos[i].x - string.len(Alien.pos[i].hp)*5, Alien.pos[i].y)
---		love.graphics.setColor(255,255,255)
---	end
---end
-
---function drawAsteroid()
-		
-			
-		
-	--	love.graphics.setColor(255,255,255,255)
-		
-	--	for i,j in ipairs(Asteroid.pos) do
-	--		love.graphics.draw(asteroid1,Asteroid[Asteroid.pos[i].rnd].animate, Asteroid.pos[i].x, Asteroid.pos[i].y, Asteroid.rad / Asteroid.pos[i].size, Asteroid.pos[i].size, Asteroid.pos[i].size, 36, 36)
-	--		love.graphics.rectangle("line",Asteroid.pos[i].x - Asteroid.pos[i].hp /5 - 1, Asteroid.pos[i].y-2, Asteroid.pos[i].hp /2.5 + 1, 5,2)
-	--		love.graphics.setColor(0,255,0,255)
-	--		love.graphics.rectangle("fill",Asteroid.pos[i].x - Asteroid.pos[i].hp /5, Asteroid.pos[i].y-1, Asteroid.pos[i].hp /2.5, 3,2)
-	--		love.graphics.setColor(255,255,255,255)
-	--		love.graphics.print(Asteroid.pos[i].hp, Asteroid.pos[i].x - string.len(Asteroid.pos[i].hp)*5, Asteroid.pos[i].y)
-	--		love.graphics.setColor(255,255,255)
-	--	end
-
- 	
---end
 
 function draw_enemy_death()
 
@@ -711,7 +684,7 @@ function update_Player_gunfire(dt)
 
 		for i,j in ipairs(player.gun4) do
 			player.gun4[i].y = player.gun4[i].y - player.shooting.speed * dt /3
-			if player.gun4[i].y < (player.pos.y - G.getWidth() / 6) then
+			if player.gun4[i].y < (player.gun4[i].startpos_y - G.getWidth() / 10) then
 				player.gun4[i].y = player.gun4[i].y - player.shooting.speed * dt 
 			end		
 
@@ -723,6 +696,11 @@ function update_Player_gunfire(dt)
 end
 
 function draw_Player_gunfire()
+	
+		for u,h in ipairs(explosion) do
+		love.graphics.rectangle("line",explosion[u].x - explosion[u].area_x,explosion[u].y - explosion[u].area_y,explosion[u].area_x * 2,explosion[u].area_y*2)
+		love.graphics.circle("line",explosion[u].x,explosion[u].y,explosion[u].area_x)
+		end
 	
 	for i,j in ipairs(player.gun1,player.gun2) do
 		love.graphics.setLineStyle("smooth") 
@@ -817,16 +795,11 @@ function game:update(dt)
 	update_Player_gunfire(dt)
 	update_enemy_death(dt)
 	collision_detection(enemy)
-	--for i,j in ipairs(enemy.id) do
-		--collision_detection(enemy.id[i].id,enemy.id[i].dim1,enemy.id[i].dim2,enemy.id[i].hp,enemy.id[i].typ,enemy.id[i].damage,enemy.id[i].worth)
-	--end
 end	
 
 function game:draw()
 	
 	 drawStars()
-	-- drawAsteroid()
-	-- drawAlien()
 	 drawEnemy()
 	 draw_enemy_death()
 	 draw_Player_gunfire()
@@ -861,8 +834,6 @@ function game:keypressed(key)
 		local Hp = 150
 		local Rnd = math.random(1,19)
 		table.insert(enemy,{x = Asteroid.startpos_x, y = -30, r = 0,size = 1,cos = Cos, sin = Sin,hp = Hp,alive = 1,rnd = Rnd, dim_x = 34, dim_y = 32,gfx = asteroid1, quad = Asteroid[Rnd].animate, gfx_w = 36, gfx_h = 36, hp = Hp, alive = 1,id = "Asteroid", damage = 15,worth = math.floor(Hp / 10)} )
-		--table.insert(Asteroid.pos,{x = Asteroid.startpos_x, y = -30, r = 0,size = 1,cos = Cos, sin = Sin,hp = Hp,alive = 1,rnd = Rnd })
-		--table.insert(enemy.id,{id = Asteroid.pos, dim1 = 34, dim2 = 32, hp = Hp, alive = 1, typ = "Asteroid", damage = 15,worth = math.floor(Hp / 10)})
 	end
 
 	if key == "x" then
@@ -874,9 +845,7 @@ function game:keypressed(key)
 		local Hp = 50
 		local Rnd = math.random(1,19)
 		table.insert(enemy,{x = Alien.startpos_x, y = -30, r = Alien.angle,size = .1,cos = Cos, sin = Sin,hp = Hp,alive = 1,rnd = Rnd, dim_x = 34, dim_y = 32,gfx = alien1,gfx_w = alien1:getWidth() / 2, gfx_h = alien1:getHeight() / 2,  hp = Hp, alive = 1, id = "Alien", damage = 20,worth = math.floor(Hp / 10)} )
-		--table.insert(Alien.pos,{x = Alien.startpos_x, y = -30, r = Alien.angle,size = 1,cos = Cos, sin = Sin,hp = Hp,alive = 1,rnd = Rnd })
-		--table.insert(enemy.id,{id = Alien.pos, dim1 = 34, dim2 = 32, hp = Hp, alive = 1, typ = "Alien", damage = 20,worth = math.floor(Hp / 10)})
-	end	
+	end
 
 	if key == "1" then
 		player.weapon = 1
