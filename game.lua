@@ -44,9 +44,9 @@ player.gun4.left = 1
 player.gun1.damage = 10
 player.gun2.damage = 10
 player.gun3.damage = 150
-player.gun4.damage = 50
-player.gun4.area_x = 125
-player.gun4.area_y = 125
+player.gun4.damage = 75
+player.gun4.area_x = 100
+player.gun4.area_y = 100
 player.gun4.energy_usage = 12.5
 player.gun3.energy_usage = 50
 player.gun1.energy_usage = 0.5
@@ -57,10 +57,13 @@ player.hitbox_y = 20
 player.sheild = 0
 player.sheild_animation = 50
 player.sheild_incr = 0
+player.sheild_energy = 299
+player.sheild_cooldown = 0
 player.weapon = 1
 
 	-- Stores explosions from exploding weapons
 	local explosion = {}
+	local draw_explosions = {}
 
 	-- Creates a Table to put stars in
 	local Stars = {}
@@ -234,8 +237,21 @@ psystem8:setRadialAcceleration(400)
 psystem8:stop()
 psystem8:start()
 
-local P_min3, P_max3 = psystem6:getParticleLifetime( )
+local psystem9 = love.graphics.newParticleSystem(particle2, 1000)
+psystem9:setParticleLifetime(.1,.2 ) 
+psystem9:setLinearAcceleration(-28000,-28000,28000,28000) 
+psystem9:setLinearDamping(25, 50) 
+psystem9:setColors(255,200,50, 100, 255, 50, 50, 50) 
+psystem9:setSizes(.5)
+psystem9:setRadialAcceleration(2500)
+psystem9:setEmissionRate(1000)
+psystem9:setRotation(0,6.28) 
+psystem9:setSpinVariation(1)
+psystem9:setBufferSize(500)
+psystem9:stop()
+psystem9:start()
 
+local P_min9, P_max9 = psystem9:getParticleLifetime()
 
 function reset()  -- Resets all values and tables on player death
 	
@@ -292,7 +308,7 @@ end
 
 function spawn_random_enemy(rate)
 
-	local spawnRate = math.random(1,rate)
+	local spawnRate = math.random(0,rate)
 	
 	if spawnRate > 0 and spawnRate < 100 then
 		Hp = math.random(75,125)
@@ -324,9 +340,15 @@ function collision_detection(enemytype)
 		and enemytype[i].x - enemytype[i].dim_x < player.pos.x + player.hitbox_x 
 		and enemytype[i].y - enemytype[i].dim_y < player.pos.y + player.hitbox_y 
 		then
-			enemytype[i].alive = 0
-			enemytype[i].got_hit = 1
-			damage = enemytype[i].damage
+			if player.sheild == 0 then
+				enemytype[i].alive = 0
+				enemytype[i].got_hit = 1
+				damage = enemytype[i].damage
+			elseif player.sheild == 1 then
+				enemytype[i].alive = 0
+				enemytype[i].got_hit = 1
+				player.sheild_energy = player.sheild_energy - enemytype[i].damage * 5
+			end
 		end
 
 		if #player.gun1 ~= 0 and #player.gun2 ~= 0 then
@@ -390,8 +412,9 @@ function collision_detection(enemytype)
 				then
 					player.gun4[k].lum = 0
 					player.gun4[k].can_hit = 0	
-					enemytype[i].hp = enemytype[i].hp - player.gun4.damage
+					--enemytype[i].hp = enemytype[i].hp - player.gun4.damage
 					table.insert(explosion,{x = player.gun4[k].x, y = player.gun4[k].y, area_x = player.gun4.area_x, area_y = player.gun4.area_y})
+					table.insert(draw_explosions,{x = player.gun4[k].x, y = player.gun4[k].y,delay=0})
 					table.remove(player.gun4,k)
 					
 					if enemytype[i].hp <= 0 then
@@ -401,6 +424,7 @@ function collision_detection(enemytype)
 				end
 			end	
 		end
+		
 		if #explosion ~= 0 then
 			count = count + 1
 			for k,l in ipairs(explosion) do
@@ -415,7 +439,8 @@ function collision_detection(enemytype)
 						enemytype[i].got_hit = 1
 					end
 				end
-				if count > #enemytype then 
+				if count >= #enemytype then 
+
 					table.remove(explosion,1)
 					count = 0
 				end
@@ -459,8 +484,6 @@ function player_input(dt) -- Handles the keyboard.isDown to make the player move
 		 			player.shooting.time = 0
 		 			player.gun4.left = 1
 		 		end
-
-		 	--	energy_meter = energy_meter - player.gun4.energy_usage 
 			end
 		end
 	end
@@ -556,6 +579,26 @@ function drawPlayer()
 	end
 end
 
+function update_player_sheild(dt)
+	
+	if player.sheild_cooldown > 0 then
+		player.sheild_cooldown = player.sheild_cooldown - dt
+		if player.sheild_cooldown < 0 then
+		player.sheild_cooldown = 0
+		end
+	end
+	
+	if player.sheild_energy <= 0 then
+		player.sheild = 0
+		player.sheild_energy = 299
+		player.sheild_cooldown = 30
+	end
+	
+	if player.sheild == 1 then
+		player.sheild_energy = player.sheild_energy - 0.5
+	end
+end
+
 function player_gui(gotDamage,hp)
 	
 	love.graphics.setColor(255,255,255)
@@ -576,10 +619,28 @@ function player_gui(gotDamage,hp)
 		energy_meter = 0
 	end
 
+	if player.sheild == 1 then
+		love.graphics.setColor(150,105,255,120)
+		love.graphics.rectangle("fill",G.getWidth()-310,G.getHeight()/1.07,player.sheild_energy ,18)
+		love.graphics.setColor(255,255,255,255)
+		love.graphics.print("Energy sheild (Active)",G.getWidth()-310,G.getHeight()/1.075)
+	else
+		love.graphics.setColor(50,50,50,120)
+		love.graphics.rectangle("fill",G.getWidth()-310,G.getHeight()/1.07,player.sheild_energy ,18)
+		if player.sheild_cooldown <= 0 then
+			love.graphics.setColor(255,255,255,255)
+			love.graphics.print("Energy sheild (Ready)",G.getWidth()-310,G.getHeight()/1.075)
+		else 
+			love.graphics.setColor(255,255,255,255)
+			love.graphics.print("Energy sheild (Cooldown "..math.floor(player.sheild_cooldown)..")",G.getWidth()-310,G.getHeight()/1.075)
+		end
+	end
+
 	love.graphics.setColor(255,255,255,255)
-	love.graphics.print("Credits " .. income,G.getWidth()-310,G.getHeight()/1.07)
+	love.graphics.print("Credits " .. income,G.getWidth()/2 - string.len("Credits") * 6.5,G.getHeight()/1.03)
 	love.graphics.setColor(255,255,255,120)
 	love.graphics.rectangle("line",G.getWidth()-310,G.getHeight()/1.041,300,20)
+	love.graphics.rectangle("line",G.getWidth()-310,G.getHeight()/1.071,300,20)
 	love.graphics.rectangle("line",10,G.getHeight()/1.041,300,20)
 	love.graphics.setColor(150,255,150,120)
 	love.graphics.rectangle("fill",G.getWidth()-310,G.getHeight()/1.04,hp_meter ,18)
@@ -695,13 +756,26 @@ function update_Player_gunfire(dt)
 	end
 end
 
-function draw_Player_gunfire()
-	
-		for u,h in ipairs(explosion) do
-		love.graphics.rectangle("line",explosion[u].x - explosion[u].area_x,explosion[u].y - explosion[u].area_y,explosion[u].area_x * 2,explosion[u].area_y*2)
-		love.graphics.circle("line",explosion[u].x,explosion[u].y,explosion[u].area_x)
+function update_draw_explosion(dt)
+	for i,j in ipairs(draw_explosions) do
+		draw_explosions[i].delay = draw_explosions[i].delay + dt
+		if draw_explosions[i].delay > P_min9  then
+			draw_explosions[i].delay = 0
+			table.remove(draw_explosions,i)
 		end
-	
+	end
+end
+
+function draw_explosion()
+	for i,j in ipairs(draw_explosions) do
+	--	love.graphics.rectangle("line",explosion[u].x - explosion[u].area_x,explosion[u].y - explosion[u].area_y,explosion[u].area_x * 2,explosion[u].area_y*2)
+	--	love.graphics.circle("line",explosion[u].x,explosion[u].y,explosion[u].area_x)
+		love.graphics.draw(psystem9,draw_explosions[i].x,draw_explosions[i].y)
+	end
+end
+
+function draw_Player_gunfire()
+		
 	for i,j in ipairs(player.gun1,player.gun2) do
 		love.graphics.setLineStyle("smooth") 
 		love.graphics.setLineWidth(1.5)
@@ -781,10 +855,12 @@ function game:update(dt)
 	psystem6:update(dt /2)
 	psystem7:update(dt /2)
 	psystem8:update(dt /2)
+	psystem9:update(dt /2)
 	psystem1:emit(40)
 	psystem2:emit(40)
 	psystem7:emit(40)
 	psystem8:emit(40)
+	psystem9:emit(1000)
 	psystem3:emit(32)
 	psystem4:emit(1000)
 	psystem5:emit(32)
@@ -795,6 +871,8 @@ function game:update(dt)
 	update_Player_gunfire(dt)
 	update_enemy_death(dt)
 	collision_detection(enemy)
+	update_player_sheild(dt)
+	update_draw_explosion(dt)
 end	
 
 function game:draw()
@@ -805,6 +883,7 @@ function game:draw()
 	 draw_Player_gunfire()
 	 drawPlayer()
 	 player_gui(damage)
+	 draw_explosion()
 end
 
 function game:keyreleased(key)
@@ -868,6 +947,9 @@ function game:keypressed(key)
 	if key == "f12" then
 		local screenshot = love.graphics.newScreenshot();
     	screenshot:encode('png', os.time() .. '.png');
+    end
+    if key == "space" and player.sheild_cooldown == 0 then
+    	player.sheild = 1
     end
 	
 	if key == "escape" then
