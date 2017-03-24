@@ -2,6 +2,7 @@ local game = require("game")
 local menu = require("menu")
 local gameover = require("gameover")
 
+
 state = 1 
 math.randomseed(os.time())
 
@@ -9,6 +10,7 @@ function love.load()
 
 	menu:load()
 	game:load()
+
 
 end
 

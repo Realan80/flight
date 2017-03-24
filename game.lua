@@ -1,18 +1,20 @@
+local collision = require("collision")
+local psystems = require("psystems")
+
 local game = {}
+
 local player_img = love.graphics.newImage("assets/fighter1.png")
 local sheild_img = love.graphics.newImage("assets/sheild.png")
 local font1 =  love.graphics.newFont("assets/6809 chargen.ttf",18)
 local player_img2 = love.graphics.newImage("assets/player_img2.png")
 local player_img3 = love.graphics.newImage("assets/player_img3.png")
-local particle1 = love.graphics.newImage("assets/particle1.tga")
-local particle2 = love.graphics.newImage("assets/particle2.png")
 local asteroid1 = love.graphics.newImage("assets/asteroid1.png")
-local broken_asteroid = love.graphics.newImage("assets/broken_asteroid.png")
 local alien1 = love.graphics.newImage("assets/alienshiptex.png")
 local missile = love.graphics.newImage("assets/missile.png")
 local gui = love.graphics.newImage("assets/gui.png")
-local count = 0
 love.graphics.setFont(font1)
+
+count = 0
 local wave_form = 1
 	  hp_meter = 299
 local energy_meter = 299
@@ -20,9 +22,9 @@ local energy_multiplier = 10
 local G = love.graphics
 local pi = math.pi
 local anim = 0
-local damage = 0
-local income = 0
-local player = {
+ damage = 0
+ income = 0
+ player = {
 		shooting = {},
 		 gun1 = {},
 		 gun2 = {},
@@ -62,12 +64,12 @@ player.sheild_cooldown = 0
 player.weapon = 1
 
 	-- Stores explosions from exploding weapons
-	local explosion = {}
-	local draw_explosions = {}
+	 explosion = {}
+	 draw_explosions = {}
 
 	-- Creates a Table to put stars in
 	local Stars = {}
-	Stars.amount = G.getWidth() / 2 
+	Stars.amount = G.getWidth() / 3 
 
 	-- Creats a table for animating an asteroid
 	local Asteroid = {
@@ -109,168 +111,29 @@ player.weapon = 1
 	Alien.rad = 0
 	Alien.size = 0.1
 	Alien.worth = 25
-	local enemy = {
+	enemy = {
 	pos = {},
 	id = {}
 	}
-			
-
--- Creates a particle system used for the jet effect for the player ship
-local psystem1 = love.graphics.newParticleSystem(particle2, 500)
-psystem1:setParticleLifetime(0.1,0.1 ) 
-psystem1:setLinearAcceleration(-1200,0,1200,6400) 
-psystem1:setLinearDamping(10, 100) 
-psystem1:setColors(110,110,255, 50, 80, 80, 225, 0) 
-psystem1:setSizes(.17)
-psystem1:setRotation(0,6.28) 
-psystem1:setSpinVariation(1)
-psystem1:setBufferSize(500)
-psystem1:setRadialAcceleration(100)
-psystem1:stop()
-psystem1:start()
-
--- Creates a particle system used for the jet smoke effect for the player ship
-local psystem2 = love.graphics.newParticleSystem(particle2, 500)
-psystem2:setParticleLifetime(0.1,.19 ) 
-psystem2:setLinearAcceleration(-1100,0,1100,9000) 
-psystem2:setLinearDamping(10, 50) 
-psystem2:setColors(40,40,40, 50, 30, 30, 30, 0) 
-psystem2:setSizes(.2)
-psystem2:setRotation(0,6.28) 
-psystem2:setSpinVariation(1)
-psystem2:setBufferSize(500)
-psystem2:setRadialAcceleration(1000)
-psystem2:stop()
-psystem2:start()
-
--- Creates a particle system used whem asteroides are destroyd
-local psystem3 = love.graphics.newParticleSystem(broken_asteroid, 32)
-psystem3:setParticleLifetime(.5,1 ) 
-psystem3:setLinearAcceleration(-6000,-6000,6000,6000) 
-psystem3:setLinearDamping(50, 100) 
-psystem3:setColors(255,255,255, 255, 100, 100, 100, 0) 
-psystem3:setSizes(1)
-psystem3:setRadialAcceleration(500)
-psystem3:setEmissionRate(32)
-psystem3:setRotation(0,6.28) 
-psystem3:setSpinVariation(1)
-psystem3:setBufferSize(20)
-psystem3:stop()
-psystem3:start()
-
-local P_min3, P_max3 = psystem3:getParticleLifetime( )
-
--- Creates a particle system used whem asteroides are destroyd
-local psystem4 = love.graphics.newParticleSystem(particle2, 1000)
-psystem4:setParticleLifetime(.5,1 ) 
-psystem4:setLinearAcceleration(-2000,-2000,2000,2000) 
-psystem4:setLinearDamping(100, 100) 
-psystem4:setColors(255,200,50, 100, 255, 50, 50, 50) 
-psystem4:setSizes(.3)
-psystem4:setRadialAcceleration(2500)
-psystem4:setEmissionRate(1000)
-psystem4:setRotation(0,6.28) 
-psystem4:setSpinVariation(1)
-psystem4:setBufferSize(500)
-psystem4:stop()
-psystem4:start()
-
-local P_min3, P_max3 = psystem4:getParticleLifetime( )
-
--- Creates a particle system used whem aliens are destroyd
-local psystem5 = love.graphics.newParticleSystem(broken_asteroid, 32)
-psystem5:setParticleLifetime(.5,1 ) 
-psystem5:setLinearAcceleration(-6000,-6000,6000,6000) 
-psystem5:setLinearDamping(50, 100) 
-psystem5:setColors(255,255,255, 255, 100, 100, 100, 0) 
-psystem5:setSizes(1)
-psystem5:setRadialAcceleration(500)
-psystem5:setEmissionRate(32)
-psystem5:setRotation(0,6.28) 
-psystem5:setSpinVariation(1)
-psystem5:setBufferSize(20)
-psystem5:stop()
-psystem5:start()
-
-local P_min3, P_max3 = psystem5:getParticleLifetime( )
-
--- Creates a particle system used whem aliens are destroyd
-local psystem6 = love.graphics.newParticleSystem(particle2, 1000)
-psystem6:setParticleLifetime(.5,1 ) 
-psystem6:setLinearAcceleration(-2000,-2000,2000,2000) 
-psystem6:setLinearDamping(100, 100) 
-psystem6:setColors(255,200,50, 100, 255, 50, 50, 50) 
-psystem6:setSizes(.3)
-psystem6:setRadialAcceleration(2500)
-psystem6:setEmissionRate(1000)
-psystem6:setRotation(0,6.28) 
-psystem6:setSpinVariation(1)
-psystem6:setBufferSize(500)
-psystem6:stop()
-psystem6:start()
-
--- Creates a particle system used for the jet effect for the missiles
-local psystem7 = love.graphics.newParticleSystem(particle2, 500)
-psystem7:setParticleLifetime(0.1,0.1 ) 
-psystem7:setLinearAcceleration(-300,0,300,3400) 
-psystem7:setLinearDamping(10, 100) 
-psystem7:setColors(110,110,255, 50, 80, 80, 225, 0) 
-psystem7:setSizes(.1)
-psystem7:setRotation(0,6.28) 
-psystem7:setSpinVariation(1)
-psystem7:setBufferSize(500)
-psystem7:setRadialAcceleration(50)
-psystem7:stop()
-psystem7:start()
-
--- Creates a particle system used for the jet smoke effect for the missiles
-local psystem8 = love.graphics.newParticleSystem(particle2, 500)
-psystem8:setParticleLifetime(0.1,.19 ) 
-psystem8:setLinearAcceleration(-200,0,200,6000) 
-psystem8:setLinearDamping(10, 50) 
-psystem8:setColors(40,40,40, 50, 30, 30, 30, 0) 
-psystem8:setSizes(.2)
-psystem8:setRotation(0,6.28) 
-psystem8:setSpinVariation(1)
-psystem8:setBufferSize(500)
-psystem8:setRadialAcceleration(400)
-psystem8:stop()
-psystem8:start()
-
-local psystem9 = love.graphics.newParticleSystem(particle2, 1000)
-psystem9:setParticleLifetime(.1,.2 ) 
-psystem9:setLinearAcceleration(-28000,-28000,28000,28000) 
-psystem9:setLinearDamping(25, 50) 
-psystem9:setColors(255,200,50, 100, 255, 50, 50, 50) 
-psystem9:setSizes(.5)
-psystem9:setRadialAcceleration(2500)
-psystem9:setEmissionRate(1000)
-psystem9:setRotation(0,6.28) 
-psystem9:setSpinVariation(1)
-psystem9:setBufferSize(500)
-psystem9:stop()
-psystem9:start()
-
-local P_min9, P_max9 = psystem9:getParticleLifetime()
 
 function reset()  -- Resets all values and tables on player death
-	
-	for i,j in ipairs(Asteroid.pos) do
-		table.remove(Asteroid.pos,i)
+	for reset_loop = 1, #enemy do
+		for i,j in ipairs(Asteroid.pos) do
+			table.remove(Asteroid.pos,i)
+		end
+		for i,j in ipairs(Alien.pos) do
+			table.remove(Alien.pos,i)
+		end
+		for i,j in ipairs(enemy.pos) do
+			table.remove(enemy.pos,i)
+		end
+		for i,j in ipairs(enemy.id) do
+			table.remove(enemy.id,i)
+		end
+		for i,j in ipairs(enemy) do
+			table.remove(enemy,i)
+		end
 	end
-	for i,j in ipairs(Alien.pos) do
-		table.remove(Alien.pos,i)
-	end
-	for i,j in ipairs(enemy.pos) do
-		table.remove(enemy.pos,i)
-	end
-	for i,j in ipairs(enemy.id) do
-		table.remove(enemy.id,i)
-	end
-	for i,j in ipairs(enemy) do
-		table.remove(enemy,i)
-	end
-	
 	Asteroid.angle = 0
 	Asteroid.startpos_x = 0
 	Asteroid.speed = G.getHeight() / 20
@@ -332,127 +195,7 @@ function spawn_random_enemy(rate)
 	end	
 end
 
-function collision_detection(enemytype)
-	for i,j in ipairs(enemytype) do
 
-		if enemytype[i].x + enemytype[i].dim_x > player.pos.x - player.hitbox_x 
-		and enemytype[i].y + enemytype[i].dim_y > player.pos.y - player.hitbox_y 
-		and enemytype[i].x - enemytype[i].dim_x < player.pos.x + player.hitbox_x 
-		and enemytype[i].y - enemytype[i].dim_y < player.pos.y + player.hitbox_y 
-		then
-			if player.sheild == 0 then
-				enemytype[i].alive = 0
-				enemytype[i].got_hit = 1
-				damage = enemytype[i].damage
-			elseif player.sheild == 1 then
-				enemytype[i].alive = 0
-				enemytype[i].got_hit = 1
-				player.sheild_energy = player.sheild_energy - enemytype[i].damage * 5
-			end
-		end
-
-		if #player.gun1 ~= 0 and #player.gun2 ~= 0 then
-			for k,l in ipairs(player.gun1,player.gun2) do
-			
-				if player.gun1[k].y <= enemytype[i].y + enemytype[i].dim_y 
-				and player.gun1[k].y >= enemytype[i].y - enemytype[i].dim_y
-				and player.gun1[k].x >= enemytype[i].x - enemytype[i].dim_x  
-				and player.gun1[k].x <= enemytype[i].x + enemytype[i].dim_x
-				and player.gun1[k].can_hit == 1
-				then
-					player.gun1[k].lum = 0
-					player.gun1[k].can_hit = 0
-					enemytype[i].hp = enemytype[i].hp - player.gun1.damage
-					if enemytype[i].hp <= 0 then
-						enemytype[i].alive = 0
-						enemytype[i].got_hit = 1
-					end
-				end
-			
-				if  player.gun2[k].y <= enemytype[i].y + enemytype[i].dim_y
-				and player.gun2[k].y >= enemytype[i].y - enemytype[i].dim_y  
-				and player.gun2[k].x >= enemytype[i].x - enemytype[i].dim_x 
-				and player.gun2[k].x <= enemytype[i].x + enemytype[i].dim_x
-				and player.gun2[k].can_hit == 1
-				then
-					player.gun2[k].lum = 0
-					player.gun2[k].can_hit = 0	
-					enemytype[i].hp = enemytype[i].hp - player.gun2.damage
-					if enemytype[i].hp <= 0 then
-						enemytype[i].alive = 0
-						enemytype[i].got_hit = 1
-					end	
-				end
-			end
-		elseif #player.gun3 ~= 0 then
-			for k,l in ipairs(player.gun3) do
-			
-				if player.gun3[k].y <= enemytype[i].y + enemytype[i].dim_y *5
-				and player.gun3[k].y >= enemytype[i].y - enemytype[i].dim_y *5
-				and player.gun3[k].x >= enemytype[i].x - enemytype[i].dim_x *1.5
-				and player.gun3[k].x <= enemytype[i].x + enemytype[i].dim_x *1.5
-				and player.gun3[k].can_hit == 1
-				then
-					enemytype[i].hp = enemytype[i].hp - player.gun3.damage
-				
-					if enemytype[i].hp <= 0 then
-						enemytype[i].alive = 0
-						enemytype[i].got_hit = 1
-					end
-				end
-			end
-		elseif #player.gun4 ~= 0 then
-			for k,l in ipairs(player.gun4) do
-			
-				if player.gun4[k].y <= enemytype[i].y + enemytype[i].dim_y 
-				and player.gun4[k].y >= enemytype[i].y - enemytype[i].dim_y 
-				and player.gun4[k].x >= enemytype[i].x - enemytype[i].dim_x 
-				and player.gun4[k].x <= enemytype[i].x + enemytype[i].dim_x 
-				and player.gun4[k].can_hit == 1
-				then
-					player.gun4[k].lum = 0
-					player.gun4[k].can_hit = 0	
-					--enemytype[i].hp = enemytype[i].hp - player.gun4.damage
-					table.insert(explosion,{x = player.gun4[k].x, y = player.gun4[k].y, area_x = player.gun4.area_x, area_y = player.gun4.area_y})
-					table.insert(draw_explosions,{x = player.gun4[k].x, y = player.gun4[k].y,delay=0})
-					table.remove(player.gun4,k)
-					
-					if enemytype[i].hp <= 0 then
-						enemytype[i].alive = 0
-						enemytype[i].got_hit = 1
-					end
-				end
-			end	
-		end
-		
-		if #explosion ~= 0 then
-			count = count + 1
-			for k,l in ipairs(explosion) do
-				if enemytype[i].x < explosion[k].x + explosion[k].area_x
-				and enemytype[i].x > explosion[k].x - explosion[k].area_x
-				and enemytype[i].y < explosion[k].y + explosion[k].area_y
-				and enemytype[i].y > explosion[k].y - explosion[k].area_y
-				then
-					enemytype[i].hp = enemytype[i].hp - player.gun4.damage
-					if enemytype[i].hp <= 0 then
-						enemytype[i].alive = 0
-						enemytype[i].got_hit = 1
-					end
-				end
-				if count >= #enemytype then 
-
-					table.remove(explosion,1)
-					count = 0
-				end
-			end				
-		end
-		if enemytype[i].alive == 0 then
-			income = income + enemytype[i].worth
-			table.insert(enemy.pos,{x = enemytype[i].x, y = enemytype[i].y,delay = 0,typ = enemytype[i].id})
-			table.remove(enemytype,i)
-		end
-	end
-end
 
 function player_input(dt) -- Handles the keyboard.isDown to make the player move
 
@@ -527,13 +270,24 @@ function player_input(dt) -- Handles the keyboard.isDown to make the player move
 		psystem1:setLinearAcceleration(-900,0,900,8000)
 		psystem2:setLinearAcceleration(-1100,0,1100,9000) 
 	end
+
+	if love.keyboard.isDown("y") then
+		Asteroid.startpos_x = math.random(0,G.getWidth())
+		Asteroid.endpos_x = math.random(0,G.getWidth())
+	    Asteroid.angle = math.atan2(G.getHeight(),Asteroid.endpos_x - Asteroid.startpos_x) 
+		local Cos = math.cos(Asteroid.angle)
+		local Sin = math.sin(Asteroid.angle)
+		local Hp = 150
+		local Rnd = math.random(1,19)
+		table.insert(enemy,{x = Asteroid.startpos_x, y = -30, r = 0,size = 1,cos = Cos, sin = Sin,hp = Hp,alive = 1,rnd = Rnd, dim_x = 34, dim_y = 32,gfx = asteroid1, quad = Asteroid[Rnd].animate, gfx_w = 36, gfx_h = 36, hp = Hp, alive = 1,id = "Asteroid", damage = 15,worth = math.floor(Hp / 10)} )
+	end
 end
 
 function addStars(amount)
 
 	for i=1,amount do
 			
-		local Size = math.random(0.3,1.5)
+		local Size = math.random(.4,1.5)
 		local Speed = Size / 7
 		local Color = math.random(200,500)
 		table.insert(Stars,{x = math.random(1,G.getWidth()),y = math.random(1,G.getHeight()),size = Size,is_star = math.random(0,1),speed = Speed,color = Color})
@@ -551,12 +305,10 @@ function drawPlayer()
 	
 	if player.right == 1 then
 		love.graphics.draw(player_img2,player.pos.x,player.pos.y,math.pi*1.5,player.size,player.size,player_img:getWidth() /2,player_img:getHeight() /2 )
-	
 	end
 
 	if player.left == 1 then
 		love.graphics.draw(player_img3,player.pos.x,player.pos.y,math.pi*1.5,player.size,player.size,player_img:getWidth() /2,player_img:getHeight() /2 )
-	
 	end
 
 	if player.sheild == 1 then
@@ -677,7 +429,7 @@ end
 
 function drawEnemy()
 	love.graphics.setColor(255,255,255,255)
-	for i,j in ipairs(enemy) do
+	for i=1, #enemy do
 		if enemy[i].id == "Asteroid" then
 			love.graphics.draw(enemy[i].gfx,enemy[i].quad, enemy[i].x, enemy[i].y,enemy[i].r,enemy[i].size,enemy[i].size,enemy[i].gfx_w,enemy[i].gfx_h)
 		else
@@ -694,7 +446,7 @@ end
 
 function draw_enemy_death()
 
-	for i,j in ipairs(enemy.pos) do
+	for i=1, #enemy.pos do
 		if enemy.pos[i].typ == "Asteroid" then 
 			psystem3:setColors(255,255,255, 255, 100, 100, 100, 0) 
 			love.graphics.draw(psystem3,enemy.pos[i].x, enemy.pos[i].y)
@@ -767,7 +519,7 @@ function update_draw_explosion(dt)
 end
 
 function draw_explosion()
-	for i,j in ipairs(draw_explosions) do
+	for i = 1, #draw_explosions do
 	--	love.graphics.rectangle("line",explosion[u].x - explosion[u].area_x,explosion[u].y - explosion[u].area_y,explosion[u].area_x * 2,explosion[u].area_y*2)
 	--	love.graphics.circle("line",explosion[u].x,explosion[u].y,explosion[u].area_x)
 		love.graphics.draw(psystem9,draw_explosions[i].x,draw_explosions[i].y)
@@ -786,7 +538,7 @@ function draw_Player_gunfire()
 		love.graphics.setLineWidth(1)
 	end	
 	
-	for i,j in ipairs(player.gun3) do
+	for i=1, #player.gun3 do
 		
 		if player.gun3[i].y > player.pos.y - 500 then
 			love.graphics.setLineStyle("smooth") 	
@@ -809,7 +561,7 @@ function draw_Player_gunfire()
 		end
 	end
 	
-	for i,j in ipairs(player.gun4) do
+	for i=1, #player.gun4 do
 		--love.graphics.setColor(255,100,255,player.gun4[i].lum)
 		--love.graphics.circle("fill",player.gun4[i].x,player.gun4[i].y,20)
 		love.graphics.setColor(255,255,255,player.gun4[i].lum)
@@ -838,6 +590,7 @@ end
 
 function game:load()
 addStars(Stars.amount)
+psystems:load()
 end
 
 function game:update(dt)
@@ -870,7 +623,8 @@ function game:update(dt)
 	updateEnemy(dt)
 	update_Player_gunfire(dt)
 	update_enemy_death(dt)
-	collision_detection(enemy)
+	Collision:update(enemy,dt)
+	--collision_detection(enemy)
 	update_player_sheild(dt)
 	update_draw_explosion(dt)
 end	
