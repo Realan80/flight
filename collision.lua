@@ -1,6 +1,6 @@
-Collision = {}
+local collision = {}
 
-function Collision:update(enemytype,dt)
+function collision:update(enemytype,dt)
 	for i,j in ipairs(enemytype) do
 
 		if enemytype[i].x + enemytype[i].dim_x > player.pos.x - player.hitbox_x 
@@ -124,4 +124,4 @@ end
 
 
 
-return Collision
+return collision

@@ -142,8 +142,31 @@ function psystems:load()
 	psystem9:stop()
 	psystem9:start()
 
-P_min9, P_max9 = psystem9:getParticleLifetime()
-
+	P_min9, P_max9 = psystem9:getParticleLifetime()
 end
+
+function psystems:update(dt)
+
+	psystem1:update(dt / 2)
+	psystem2:update(dt / 2)
+	psystem3:update(dt / 2)
+	psystem4:update(dt / 2)
+	psystem5:update(dt / 2)
+	psystem6:update(dt / 2)
+	psystem7:update(dt / 2)
+	psystem8:update(dt / 2)
+	psystem9:update(dt / 2)
+	psystem1:emit(40)
+	psystem2:emit(40)
+	psystem7:emit(40)
+	psystem8:emit(40)
+	psystem9:emit(1000)
+	psystem3:emit(32)
+	psystem4:emit(1000)
+	psystem5:emit(32)
+	psystem6:emit(1000)
+end
+
+
 
 return psystems

@@ -13,7 +13,6 @@ local alien1 = love.graphics.newImage("assets/alienshiptex.png")
 local missile = love.graphics.newImage("assets/missile.png")
 local gui = love.graphics.newImage("assets/gui.png")
 love.graphics.setFont(font1)
-
 count = 0
 local wave_form = 1
 	  hp_meter = 299
@@ -197,7 +196,7 @@ end
 
 
 
-function player_input(dt) -- Handles the keyboard.isDown to make the player move
+function player_input(dt) -- Handles the keyboard.isDown to make the player move etc.
 
 	if love.keyboard.isDown("lctrl") then
 		if player.weapon == 1 then		
@@ -351,7 +350,7 @@ function update_player_sheild(dt)
 	end
 end
 
-function player_gui(gotDamage,hp)
+function draw_player_gui(gotDamage,hp)
 	
 	love.graphics.setColor(255,255,255)
 	love.graphics.print("FPS: " .. love.timer.getFPS(), 1, 1,0) 
@@ -421,7 +420,7 @@ function updateEnemy(dt)
 			enemy[i].y = enemy[i].y + Alien.speed * enemy[i].sin * dt
 		end
 		
-		if enemy[i].y > G.getHeight() + 30 or enemy[i].x < -30 or enemy[i].x > G.getWidth() + 30 then
+		if enemy[i].y > G.getHeight() + 30 or enemy[i].x < -30 or enemy[i].x > G.getWidth() + 30 or enemy[i].y < - 35 then 
 			table.remove(enemy,i)
 		end
 	end
@@ -509,6 +508,7 @@ function update_Player_gunfire(dt)
 end
 
 function update_draw_explosion(dt)
+	
 	for i,j in ipairs(draw_explosions) do
 		draw_explosions[i].delay = draw_explosions[i].delay + dt
 		if draw_explosions[i].delay > P_min9  then
@@ -519,9 +519,8 @@ function update_draw_explosion(dt)
 end
 
 function draw_explosion()
+		
 	for i = 1, #draw_explosions do
-	--	love.graphics.rectangle("line",explosion[u].x - explosion[u].area_x,explosion[u].y - explosion[u].area_y,explosion[u].area_x * 2,explosion[u].area_y*2)
-	--	love.graphics.circle("line",explosion[u].x,explosion[u].y,explosion[u].area_x)
 		love.graphics.draw(psystem9,draw_explosions[i].x,draw_explosions[i].y)
 	end
 end
@@ -594,37 +593,20 @@ psystems:load()
 end
 
 function game:update(dt)
+	DT = dt
 	wave_form = wave_form + dt
 	if wave_form > 180 / math.pi then
 		wave_form = 0
 	end
 	energy_meter = energy_meter + dt * energy_multiplier
 	updateStars(dt)
-	psystem1:update(dt /2)
-	psystem2:update(dt /2)
-	psystem3:update(dt /2)
-	psystem4:update(dt /2)
-	psystem5:update(dt /2)
-	psystem6:update(dt /2)
-	psystem7:update(dt /2)
-	psystem8:update(dt /2)
-	psystem9:update(dt /2)
-	psystem1:emit(40)
-	psystem2:emit(40)
-	psystem7:emit(40)
-	psystem8:emit(40)
-	psystem9:emit(1000)
-	psystem3:emit(32)
-	psystem4:emit(1000)
-	psystem5:emit(32)
-	psystem6:emit(1000)
+	psystems:update(dt)
 	player_input(dt)
 	spawn_random_enemy(20000)
 	updateEnemy(dt)
 	update_Player_gunfire(dt)
 	update_enemy_death(dt)
-	Collision:update(enemy,dt)
-	--collision_detection(enemy)
+	collision:update(enemy,dt)
 	update_player_sheild(dt)
 	update_draw_explosion(dt)
 end	
@@ -636,7 +618,7 @@ function game:draw()
 	 draw_enemy_death()
 	 draw_Player_gunfire()
 	 drawPlayer()
-	 player_gui(damage)
+	 draw_player_gui(damage)
 	 draw_explosion()
 end
 
