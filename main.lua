@@ -7,6 +7,9 @@ state = 1
 math.randomseed(os.time())
 
 function love.load()
+	
+	min_dt = 1/60
+    next_time = love.timer.getTime()
 
 	menu:load()
 	game:load()
@@ -15,6 +18,9 @@ function love.load()
 end
 
 function love.update(dt)
+	
+	next_time = next_time + min_dt
+	
 	if state == 1 then 
 		menu:update(dt)
 	elseif state == 2 then 
@@ -36,6 +42,13 @@ function love.draw()
 	elseif state == 4 then
 		game:draw()
 	end
+
+	local cur_time = love.timer.getTime()
+    if next_time <= cur_time then
+  	    next_time = cur_time
+  		return
+    end
+    love.timer.sleep(next_time - cur_time)
 end
 function love.keypressed(key)
 	if state == 1 then 
