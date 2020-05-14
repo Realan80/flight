@@ -1,13 +1,13 @@
 local game = require("game")
 local menu = require("menu")
 local gameover = require("gameover")
-
+ 
 
 state = 1 
 math.randomseed(os.time())
 
 function love.load()
-	
+	ColorCorrection = 1 / 255
 	min_dt = 1/60
     next_time = love.timer.getTime()
 

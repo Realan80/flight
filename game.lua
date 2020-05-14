@@ -288,14 +288,14 @@ function addStars(amount)
 			
 		local Size = math.random(.4,1.5)
 		local Speed = Size / 7
-		local Color = math.random(200,500)
+		local Color = math.random(200 * ColorCorrection,500 * ColorCorrection)
 		table.insert(Stars,{x = math.random(1,G.getWidth()),y = math.random(1,G.getHeight()),size = Size,is_star = math.random(0,1),speed = Speed,color = Color})
 	end
 end
 
 function drawPlayer()
 	
-	love.graphics.setColor(255,255,255,255)
+	love.graphics.setColor(255 * ColorCorrection,255* ColorCorrection,255* ColorCorrection,255* ColorCorrection)
 	love.graphics.draw(psystem2, player.pos.x - player_img:getWidth() / 10.5 * player.size  , player.pos.y + player_img:getWidth()/2.5 * player.size)
 	love.graphics.draw(psystem2, player.pos.x + player_img:getWidth() / 10.5 * player.size  , player.pos.y + player_img:getWidth()/2.5 * player.size)
 	love.graphics.draw(psystem1, player.pos.x - player_img:getWidth() / 10.5 * player.size  , player.pos.y + player_img:getWidth()/2.5 * player.size)
@@ -325,7 +325,7 @@ function drawPlayer()
 			player.sheild_incr = 1
 		end
 		
-		love.graphics.setColor(90,90,205,player.sheild_animation)
+		love.graphics.setColor(90 * ColorCorrection,90 * ColorCorrection,205 * ColorCorrection,player.sheild_animation * ColorCorrection)
 		love.graphics.draw(sheild_img,player.pos.x - player_img:getWidth() / G.getWidth() / 2,player.pos.y - player_img:getHeight() / G.getHeight() /2,0,.75,.75,sheild_img:getWidth()/2,sheild_img:getHeight() /2 )
 	end
 end
@@ -352,7 +352,7 @@ end
 
 function draw_player_gui(gotDamage,hp)
 	
-	love.graphics.setColor(255,255,255)
+	love.graphics.setColor(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection)
 	love.graphics.print("FPS: " .. love.timer.getFPS(), 1, 1,0) 
 	hp_meter = hp_meter - gotDamage * 3
 	if hp_meter <= 0 then
@@ -371,33 +371,33 @@ function draw_player_gui(gotDamage,hp)
 	end
 
 	if player.sheild == 1 then
-		love.graphics.setColor(150,105,255,120)
+		love.graphics.setColor(150 * ColorCorrection,105 * ColorCorrection,255 * ColorCorrection,120 * ColorCorrection)
 		love.graphics.rectangle("fill",G.getWidth()-310,G.getHeight()/1.07,player.sheild_energy ,18)
-		love.graphics.setColor(255,255,255,255)
+		love.graphics.setColor(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection)
 		love.graphics.print("Energy sheild (Active)",G.getWidth()-310,G.getHeight()/1.075)
 	else
-		love.graphics.setColor(50,50,50,120)
+		love.graphics.setColor(50 * ColorCorrection,50 * ColorCorrection,50 * ColorCorrection,120 * ColorCorrection)
 		love.graphics.rectangle("fill",G.getWidth()-310,G.getHeight()/1.07,player.sheild_energy ,18)
 		if player.sheild_cooldown <= 0 then
-			love.graphics.setColor(255,255,255,255)
+			love.graphics.setColor(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection)
 			love.graphics.print("Energy sheild (Ready)",G.getWidth()-310,G.getHeight()/1.075)
 		else 
-			love.graphics.setColor(255,255,255,255)
+			love.graphics.setColor(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection)
 			love.graphics.print("Energy sheild (Cooldown "..math.floor(player.sheild_cooldown)..")",G.getWidth()-310,G.getHeight()/1.075)
 		end
 	end
 
-	love.graphics.setColor(255,255,255,255)
+	love.graphics.setColor(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection)
 	love.graphics.print("Credits " .. income,G.getWidth()/2 - string.len("Credits") * 6.5,G.getHeight()/1.03)
-	love.graphics.setColor(255,255,255,120)
+	love.graphics.setColor(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection,120 * ColorCorrection)
 	love.graphics.rectangle("line",G.getWidth()-310,G.getHeight()/1.041,300,20)
 	love.graphics.rectangle("line",G.getWidth()-310,G.getHeight()/1.071,300,20)
 	love.graphics.rectangle("line",10,G.getHeight()/1.041,300,20)
-	love.graphics.setColor(150,255,150,120)
+	love.graphics.setColor(150 * ColorCorrection,255 * ColorCorrection,150 * ColorCorrection,120 * ColorCorrection)
 	love.graphics.rectangle("fill",G.getWidth()-310,G.getHeight()/1.04,hp_meter ,18)
-	love.graphics.setColor(150,105,255,120)
+	love.graphics.setColor(150 * ColorCorrection,105 * ColorCorrection,255 * ColorCorrection,120 * ColorCorrection)
 	love.graphics.rectangle("fill",10,G.getHeight()/1.04,energy_meter ,18)
-	love.graphics.setColor(255,255,255,255)
+	love.graphics.setColor(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection)
 	love.graphics.print("Player health",G.getWidth()-310,G.getHeight()/1.045)
 	love.graphics.print("Weapon energy",10,G.getHeight()/1.045)
 	love.graphics.draw(gui, 0,G.getHeight() - 100)
@@ -427,7 +427,7 @@ function updateEnemy(dt)
 end
 
 function drawEnemy()
-	love.graphics.setColor(255,255,255,255)
+	love.graphics.setColor(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection)
 	for i=1, #enemy do
 		if enemy[i].id == "Asteroid" then
 			love.graphics.draw(enemy[i].gfx,enemy[i].quad, enemy[i].x, enemy[i].y,enemy[i].r,enemy[i].size,enemy[i].size,enemy[i].gfx_w,enemy[i].gfx_h)
@@ -435,11 +435,11 @@ function drawEnemy()
 			love.graphics.draw(enemy[i].gfx, enemy[i].x, enemy[i].y,enemy[i].r,enemy[i].size,enemy[i].size,enemy[i].gfx_w,enemy[i].gfx_h)
 		end
 		love.graphics.rectangle("line",enemy[i].x - enemy[i].hp /5 - 1, enemy[i].y-2, enemy[i].hp /2.5 + 1, 5,2)
-		love.graphics.setColor(0,255,0,255)
+		love.graphics.setColor(0 * ColorCorrection,255 * ColorCorrection,0 * ColorCorrection,255 * ColorCorrection)
 		love.graphics.rectangle("fill",enemy[i].x - enemy[i].hp /5, enemy[i].y-1, enemy[i].hp /2.5, 3,2)
-		love.graphics.setColor(255,255,255,255)
+		love.graphics.setColor(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection)
 		love.graphics.print(enemy[i].hp, enemy[i].x - string.len(enemy[i].hp)*5, enemy[i].y)
-		love.graphics.setColor(255,255,255)
+		love.graphics.setColor(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection)
 	end
 end
 
@@ -447,15 +447,15 @@ function draw_enemy_death()
 
 	for i=1, #enemy.pos do
 		if enemy.pos[i].typ == "Asteroid" then 
-			psystem3:setColors(255,255,255, 255, 100, 100, 100, 0) 
+			psystem3:setColors(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection, 255 * ColorCorrection, 100 * ColorCorrection, 100 * ColorCorrection, 100 * ColorCorrection, 0 * ColorCorrection) 
 			love.graphics.draw(psystem3,enemy.pos[i].x, enemy.pos[i].y)
-			psystem4:setColors(200,200,200, 75, 100, 100, 100, 10) 
+			psystem4:setColors(200 * ColorCorrection,200 * ColorCorrection,200 * ColorCorrection, 75 * ColorCorrection, 100 * ColorCorrection, 100 * ColorCorrection, 100 * ColorCorrection, 10 * ColorCorrection) 
 			love.graphics.draw(psystem4,enemy.pos[i].x, enemy.pos[i].y)
 		end
 		if enemy.pos[i].typ == "Alien" then
-			psystem5:setColors(50,50,50, 150, 50, 50, 50, 100) 
+			psystem5:setColors(50 * ColorCorrection,50 * ColorCorrection,50 * ColorCorrection, 150 * ColorCorrection, 50 * ColorCorrection, 50 * ColorCorrection, 50 * ColorCorrection, 100 * ColorCorrection) 
 			love.graphics.draw(psystem5,enemy.pos[i].x, enemy.pos[i].y)
-			psystem6:setColors(255,200,50, 50, 255, 50, 50, 10) 
+			psystem6:setColors(255 * ColorCorrection,200 * ColorCorrection,50 * ColorCorrection, 50 * ColorCorrection, 255 * ColorCorrection, 50 * ColorCorrection, 50 * ColorCorrection, 10 * ColorCorrection) 
 			love.graphics.draw(psystem6,enemy.pos[i].x, enemy.pos[i].y)
 		end
 	end
@@ -530,9 +530,9 @@ function draw_Player_gunfire()
 	for i,j in ipairs(player.gun1,player.gun2) do
 		love.graphics.setLineStyle("smooth") 
 		love.graphics.setLineWidth(1.5)
-		love.graphics.setColor(255,100,100,player.gun1[i].lum)
+		love.graphics.setColor(255 * ColorCorrection,100 * ColorCorrection,100 * ColorCorrection,player.gun1[i].lum)
 		love.graphics.line(player.gun1[i].x,player.gun1[i].y,player.gun1[i].x,player.gun1[i].y+15)
-		love.graphics.setColor(255,100,100,player.gun2[i].lum)
+		love.graphics.setColor(255 * ColorCorrection,100 * ColorCorrection,100 * ColorCorrection,player.gun2[i].lum)
 		love.graphics.line(player.gun2[i].x,player.gun2[i].y,player.gun2[i].x,player.gun2[i].y+15)
 		love.graphics.setLineWidth(1)
 	end	
@@ -542,19 +542,19 @@ function draw_Player_gunfire()
 		if player.gun3[i].y > player.pos.y - 500 then
 			love.graphics.setLineStyle("smooth") 	
 			love.graphics.setLineWidth(10)
-			love.graphics.setColor(100,150,100,player.gun3[i].lum)
+			love.graphics.setColor(100 * ColorCorrection,150 * ColorCorrection,100 * ColorCorrection,player.gun3[i].lum)
 			love.graphics.line(player.gun3[i].x,player.gun3[i].y,player.gun3[i].x,player.pos.y)
 			love.graphics.setLineWidth(5)
-			love.graphics.setColor(100,255,100,player.gun3[i].lum)
+			love.graphics.setColor(100 * ColorCorrection,255 * ColorCorrection,100 * ColorCorrection,player.gun3[i].lum)
 			love.graphics.line(player.gun3[i].x,player.gun3[i].y,player.gun3[i].x,player.pos.y)
 			love.graphics.setLineWidth(1)
 		else 
 			love.graphics.setLineStyle("smooth") 
 			love.graphics.setLineWidth(10)
-			love.graphics.setColor(100,150,100,player.gun3[i].lum)
+			love.graphics.setColor(100 * ColorCorrection,150 * ColorCorrection,100 * ColorCorrection,player.gun3[i].lum)
 			love.graphics.line(player.gun3[i].x,player.gun3[i].y,player.gun3[i].x,player.gun3[i].y + 500)
 			love.graphics.setLineWidth(5)
-			love.graphics.setColor(100,255,100,player.gun3[i].lum)
+			love.graphics.setColor(100 * ColorCorrection,255 * ColorCorrection,100 * ColorCorrection,player.gun3[i].lum)
 			love.graphics.line(player.gun3[i].x,player.gun3[i].y,player.gun3[i].x,player.gun3[i].y + 500)
 			love.graphics.setLineWidth(1)
 		end
@@ -563,17 +563,17 @@ function draw_Player_gunfire()
 	for i=1, #player.gun4 do
 		--love.graphics.setColor(255,100,255,player.gun4[i].lum)
 		--love.graphics.circle("fill",player.gun4[i].x,player.gun4[i].y,20)
-		love.graphics.setColor(255,255,255,player.gun4[i].lum)
+		love.graphics.setColor(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection,player.gun4[i].lum)
 		love.graphics.draw(psystem8,player.gun4[i].x,player.gun4[i].y+20)
 		love.graphics.draw(psystem7,player.gun4[i].x,player.gun4[i].y+20)
 		love.graphics.draw(missile,player.gun4[i].x,player.gun4[i].y,0,0.07,0.07,missile:getWidth()/2,missile:getHeight()/2)
 	end	
-	love.graphics.setColor(255,255,255)
+	love.graphics.setColor(255 * ColorCorrection,255 * ColorCorrection,255 * ColorCorrection)
 end
 
 function drawStars()
 	for i=1, #Stars do
-		love.graphics.setColor(200,200,Stars[i].color,180)
+		love.graphics.setColor(200 * ColorCorrection,200 * ColorCorrection,Stars[i].color,180 * ColorCorrection)
 		love.graphics.circle("fill",Stars[i].x,Stars[i].y,Stars[i].size)
 	end
 end
